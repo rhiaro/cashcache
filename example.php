@@ -16,6 +16,10 @@ function convert_posts($posts){
         $amount = $data["amount"];
         $currency = $data["currency"];
         get_and_write($date, $currency);
+
+        $eur = convert_any_to_eur($amount, $currency, $date);
+        echo $data["date"].": ".$amount.$currency." (".$eur."EUR)";
+        echo "<hr/>";
     }
 }
 
@@ -27,7 +31,7 @@ function convert_between($from, $to, $currencies){
 
 convert_posts($sample);
 $date = new DateTime("2018-04-13");
-$stored = read_rates($date);
-header("Content-Type: application/json");
-echo json_encode($stored);
+// $stored = read_rates($date);
+// header("Content-Type: application/json");
+// echo json_encode($stored);
 ?>
