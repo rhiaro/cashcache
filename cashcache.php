@@ -13,6 +13,18 @@ function get_fixer_rates($date, $currencies){
     return array("EUR" => $rates["rates"]);
 }
 
+function get_fixer_deprecated($date, $currencies){
+    // Deprecated API 2018-06-01 but no rate limit, good for testing til then
+    if(is_array($currencies)){
+        $currencies = implode($currencies, ",");
+    }
+    $date = $date->format("Y-m-d");
+    $endpoint = "https://api.fixer.io/$date?base=EUR&symbols=$currencies";
+    $rates = file_get_contents($endpoint);
+    $rates = json_decode($rates, true);
+    return array("EUR" => $rates["rates"]);
+}
+
 function get_currencylayer_rates($date, $currencies){
     // TODO;
 }
