@@ -10,13 +10,17 @@ function get_fixer_rates($date, $currencies){
     $endpoint = "http://data.fixer.io/api/$date?access_key=$FIXERAPI&symbols=USD,GBP,$currencies";
     $rates = file_get_contents($endpoint);
     $rates = json_decode($rates, true);
-    return $rates["rates"]; // the base is EUR
+    return array("EUR" => $rates["rates"]);
+}
+
+function get_currencylayer_rates($date, $currencies){
+    // TODO;
 }
 
 function read_rates($date){
 
     global $RATESPATH;
-    $fn = $RATESPATH.$date->format("Ymd");
+    $fn = $RATESPATH.$date->format("Y-m-d");
     if(file_exists($fn)){
         $rates = json_decode(file_get_contents($fn), true);
     }else{
@@ -25,28 +29,45 @@ function read_rates($date){
     return $rates;
 }
 
-function read_rate($date, $currency){
+function read_rate($date, $currency, $base="EUR"){
     $rates = read_rates($date);
-    if(isset($rates[$currency])){
-        return $rates[$currency];
+    if(isset($rates[$base][$currency])){
+        return $rates[$base][$currency];
     }else{
         return null;
     }
 }
 
-function write_rates($date, $rates){
+function write_rates($date, $rates, $base="EUR"){
 
     global $RATESPATH;
+    $datef = $date->format("Y-m-d");
 
-    $fn = $RATESPATH.$date->format("Ymd");
+    $data = array("date" => $datef);
+
+    $fn = $RATESPATH.$datef;
     if(file_exists($fn)){
         $existing = json_decode(file_get_contents($fn), true);
-        if(is_array($existing)){
-            $rates = array_merge($existing, $rates);
+
+        if(isset($existing[$base]) && is_array($existing[$base])){
+            $updated = array_merge($existing[$base], $rates[$base]);
+        }else{
+            $updated = $rates[$base];
         }
     }
-    $json = json_encode($rates);
+    $data[$base] = $updated;
+    $json = json_encode($data);
     file_put_contents($fn, $json);
+}
+
+function get_and_write($date, $currency, $base="EUR"){
+    $existing = read_rates($date);
+    if(isset($existing[$base][$currency])){
+        return $existing;
+    }
+    $rates = get_fixer_rates($date, $currency);
+    write_rates($date, $rates);
+    return $rates;
 }
 
 function convert_eur_to_any($amount, $currency, $date){
