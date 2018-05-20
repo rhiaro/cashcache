@@ -19,7 +19,7 @@ function get_fixer_deprecated($date, $currencies){
         $currencies = implode($currencies, ",");
     }
     $date = $date->format("Y-m-d");
-    $endpoint = "https://api.fixer.io/$date?base=EUR&symbols=$currencies";
+    $endpoint = "https://api.fixer.io/$date?base=EUR&symbols=USD,GBP,$currencies";
     $rates = file_get_contents($endpoint);
     $rates = json_decode($rates, true);
     return array("EUR" => $rates["rates"]);
@@ -58,13 +58,12 @@ function write_rates($date, $rates, $base="EUR"){
     $data = array("date" => $datef);
 
     $fn = $RATESPATH.$datef;
+    $updated = $rates[$base];
     if(file_exists($fn)){
         $existing = json_decode(file_get_contents($fn), true);
 
         if(isset($existing[$base]) && is_array($existing[$base])){
             $updated = array_merge($existing[$base], $rates[$base]);
-        }else{
-            $updated = $rates[$base];
         }
     }
     $data[$base] = $updated;
