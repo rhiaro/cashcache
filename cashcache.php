@@ -2,6 +2,9 @@
 require_once("settings.php");
 
 function get_fixer_rates($date, $currencies){
+    // Rate limit: 1000 reqs/mo
+    // Currencies: 170
+    // Base: EUR
     global $FIXERAPI;
     if(is_array($currencies)){
         $currencies = implode($currencies, ",");
@@ -14,7 +17,10 @@ function get_fixer_rates($date, $currencies){
 }
 
 function get_fixer_deprecated($date, $currencies){
-    // Deprecated API 2018-06-01 but no rate limit, good for testing til then
+    // Deprecated API 2018-06-01
+    // Rate limit: none
+    // Currencies: 32
+    // Base: any
     if(is_array($currencies)){
         $currencies = implode($currencies, ",");
     }
@@ -26,7 +32,24 @@ function get_fixer_deprecated($date, $currencies){
 }
 
 function get_currencylayer_rates($date, $currencies){
-    // TODO;
+    // Rate limit: 1000 reqs/mo
+    // Currencies: 168
+    // Base: USD
+    global $CURRENCYAPI;
+    if(!is_array($currencies)){
+        $currencies = explode($currencies, ",");
+    }
+    $date = $date->format("Y-m-d");
+    $endpoint = "http://apilayer.net/api/historical?access_key=$CURRENCYAPI&date=$date";
+    $response = file_get_contents($endpoint);
+    $response = json_decode($response, true);
+    $rates = array()
+    foreach($currencies as $currency){
+      if(isset($response["quotes"]["USD".$currency])){
+        $rates[$currency] = $response["quotes"]["USD".$currency]);
+      }
+    }
+    return array("USD" => $rates);
 }
 
 function read_rates($date){
